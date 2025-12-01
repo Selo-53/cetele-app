@@ -2,219 +2,778 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <title>Çetele – Namaz Vakitleri</title>
+  <title>Çetele – Namaz Takip Sistemi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0f172a" />
   <style>
+    * { box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      background: #0f172a;
-      color: #f9fafb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
     }
+    a { color: #22c55e; }
+
     header {
       padding: 1rem;
       text-align: center;
       background: #020617;
-      border-bottom: 1px solid #1f2937;
+      border-bottom: 1px solid #111827;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    h1 {
+    header h1 {
       margin: 0;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
     }
+    header .sub {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
     main {
       flex: 1;
-      padding: 1rem;
-      max-width: 600px;
+      max-width: 900px;
       margin: 0 auto;
+      padding: 1rem;
+      width: 100%;
     }
+
     .card {
       background: #020617;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 1rem;
       border: 1px solid #1f2937;
       margin-bottom: 1rem;
     }
-    .row {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      flex-wrap: wrap;
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.05rem;
     }
-    input {
-      padding: 0.4rem 0.6rem;
-      border-radius: 8px;
-      border: 1px solid #4b5563;
-      background: #020617;
-      color: #f9fafb;
-      flex: 1;
-    }
-    button {
-      padding: 0.5rem 0.9rem;
-      border-radius: 999px;
-      border: none;
-      background: #22c55e;
-      color: #022c22;
-      font-weight: 600;
-      cursor: pointer;
+
+    input, button, select {
+      font-family: inherit;
       font-size: 0.9rem;
     }
+    input {
+      width: 100%;
+      padding: 0.5rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      margin-bottom: 0.5rem;
+    }
+    input:focus {
+      outline: 2px solid #22c55e;
+      outline-offset: 1px;
+    }
+    button {
+      padding: 0.55rem 0.9rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    button.primary {
+      background: #22c55e;
+      color: #022c22;
+    }
+    button.secondary {
+      background: #111827;
+      color: #e5e7eb;
+      border: 1px solid #374151;
+    }
+    button.small {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+    }
     button:disabled {
-      opacity: 0.7;
+      opacity: 0.6;
       cursor: default;
     }
-    .times-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
+
+    .error { color: #fecaca; font-size: 0.8rem; margin-top: 0.4rem; }
+    .success { color: #bbf7d0; font-size: 0.8rem; margin-top: 0.4rem; }
+
+    .auth-container {
+      max-width: 380px;
+      margin: 2rem auto;
+      text-align: center;
     }
-    .time-item {
-      padding: 0.6rem;
-      border-radius: 10px;
+    .auth-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
       background: #020617;
       border: 1px solid #1f2937;
       display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.8rem;
+      font-size: 1.6rem;
+    }
+
+    .row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .row > div { flex: 1 1 140px; }
+
+    .countdown {
+      font-size: 2.4rem;
+      font-weight: 700;
+      text-align: center;
+      margin: 0.2rem 0 0.4rem;
+    }
+    .tagline {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .times-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .time-item {
+      border-radius: 12px;
+      border: 1px solid #111827;
+      padding: 0.45rem 0.55rem;
+      background: #020617;
     }
     .time-label {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #9ca3af;
     }
     .time-value {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 600;
     }
-    .badge {
-      display: inline-block;
-      padding: 0.1rem 0.4rem;
+    .time-active {
+      border-color: #22c55e;
+      background: #022c22;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      padding: 0.1rem 0.45rem;
       border-radius: 999px;
       border: 1px solid #22c55e;
-      font-size: 0.7rem;
       color: #bbf7d0;
-      margin-left: 0.2rem;
     }
-    .small {
+
+    .ayah-card {
+      background: radial-gradient(circle at top, #031525, #020617 55%);
+      border-radius: 14px;
+      padding: 1rem;
+      border: 1px solid #1f2937;
+      margin-top: 0.5rem;
+    }
+    .ayah-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    .ayah-text {
+      font-size: 0.9rem;
+      color: #e5e7eb;
+      margin-bottom: 0.2rem;
+    }
+    .ayah-ref {
       font-size: 0.8rem;
       color: #9ca3af;
-      margin-top: 0.3rem;
     }
+
+    .prayer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #111827;
+      font-size: 0.9rem;
+    }
+    .prayer-row:last-child {
+      border-bottom: none;
+    }
+    .badge-done {
+      font-size: 0.75rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: #022c22;
+      color: #bbf7d0;
+      border: 1px solid #16a34a;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .tab {
+      flex: 0 0 auto;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #020617;
+      color: #9ca3af;
+    }
+    .tab.active {
+      border-color: #22c55e;
+      color: #bbf7d0;
+      background: #022c22;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    th, td {
+      border-bottom: 1px solid #111827;
+      padding: 0.35rem 0.3rem;
+      text-align: left;
+    }
+    th {
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
     footer {
       text-align: center;
-      padding: 0.5rem;
       font-size: 0.75rem;
       color: #6b7280;
+      padding: 0.5rem;
+      border-top: 1px solid #111827;
     }
-    .error {
-      color: #fecaca;
-      font-size: 0.8rem;
-      margin-top: 0.5rem;
+
+    @media (max-width: 600px) {
+      .countdown { font-size: 1.9rem; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Çetele – Namaz Vakitleri</h1>
-    <div id="today"></div>
+    <h1>Çetele – Namaz Takip</h1>
+    <div class="sub" id="headerDate"></div>
   </header>
 
   <main>
-    <div class="card">
-      <div class="row">
-        <input id="city" type="text" value="Duisburg" />
-        <input id="country" type="text" value="Germany" />
+    <!-- AUTH VIEW -->
+    <section id="authView" class="auth-container">
+      <div class="auth-logo">☾</div>
+      <h2>Giriş yap veya kayıt ol</h2>
+      <p class="tagline">Her namazı işaretle, istatistiklerini gör. Sadece davet edilen kullanıcılar giriş yapabilir.</p>
+      <input id="authEmail" type="email" placeholder="E-posta" />
+      <input id="authPassword" type="password" placeholder="Şifre" />
+      <div style="display:flex; gap:0.5rem; justify-content:center; margin-top:0.3rem;">
+        <button id="loginBtn" class="primary">Giriş yap</button>
+        <button id="registerBtn" class="secondary">Kayıt ol</button>
       </div>
-      <button id="loadBtn">Namaz vakitlerini getir</button>
-      <div id="error" class="error"></div>
-      <p class="small">
-        Vakitler <strong>AlAdhan API</strong> üzerinden alınmaktadır.
-      </p>
-    </div>
+      <div id="authMessage" class="error" style="display:none;"></div>
+    </section>
 
-    <div class="card">
-      <h2 style="margin-top:0; font-size:1.1rem;">Bugünkü Vakitler</h2>
-      <div class="times-grid" id="timesGrid"></div>
-      <div class="small" id="nightInfo"></div>
-    </div>
+    <!-- APP VIEW -->
+    <section id="appView" style="display:none;">
+      <!-- Kullanıcı üst bilgi -->
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+        <div>
+          <div style="font-size:0.85rem; color:#9ca3af;">Hoş geldin</div>
+          <div id="userEmail" style="font-size:0.95rem; font-weight:600;"></div>
+        </div>
+        <button id="logoutBtn" class="secondary small">Çıkış yap</button>
+      </div>
+
+      <!-- Ana namaz vakitleri ve geri sayım -->
+      <div class="card">
+        <div class="row">
+          <div>
+            <label for="cityInput" style="font-size:0.8rem; color:#9ca3af;">Şehir</label>
+            <input id="cityInput" type="text" value="Duisburg">
+          </div>
+          <div>
+            <label for="countryInput" style="font-size:0.8rem; color:#9ca3af;">Ülke</label>
+            <input id="countryInput" type="text" value="Germany">
+          </div>
+        </div>
+        <button id="loadTimesBtn" class="primary">Namaz vakitlerini getir</button>
+
+        <p class="tagline" id="locationLabel" style="margin-top:0.5rem;"></p>
+
+        <div id="currentPrayerLabel" class="tagline" style="color:#a5b4fc; font-weight:500;"></div>
+        <div class="countdown" id="countdown">--:--:--</div>
+
+        <div class="times-list" id="timesList"></div>
+
+        <div class="ayah-card">
+          <div class="ayah-title">
+            <span style="width:22px; height:22px; border-radius:8px; background:#16a34a; display:flex; align-items:center; justify-content:center;">📖</span>
+            Günün Ayeti
+          </div>
+          <div class="ayah-text">
+            “(Resulüm!) Biz seni ancak âlemlere rahmet olarak gönderdik.”
+          </div>
+          <div class="ayah-ref">Enbiyâ, 107</div>
+        </div>
+
+        <div id="nightInfo" class="tagline" style="margin-top:0.4rem;"></div>
+      </div>
+
+      <!-- Bugün kıldım çetelesi -->
+      <div class="card">
+        <h2>Bugünkü Çetele</h2>
+        <div id="prayerChecklist"></div>
+        <div id="checklistMessage" class="success" style="display:none;"></div>
+      </div>
+
+      <!-- Admin Panel (sadece belirli e-postalar için) -->
+      <div class="card" id="adminCard" style="display:none;">
+        <div class="tabs">
+          <button class="tab active" data-tab="today">Bugün</button>
+          <button class="tab" data-tab="week">Son 7 gün</button>
+        </div>
+        <div id="adminContent">
+          <h2>Yönetici Paneli – Bugün Kim Ne Kıldı?</h2>
+          <div id="adminTableContainer">Yükleniyor…</div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer>
-    Çetele – Namaz Vakitleri Uygulaması
+    Çetele – Namaz Takip Sistemi · PWA & Firebase tabanlı
   </footer>
 
-  <script>
-    const todayEl = document.getElementById("today");
-    const loadBtn = document.getElementById("loadBtn");
-    const errorEl = document.getElementById("error");
-    const timesGrid = document.getElementById("timesGrid");
-    const nightInfo = document.getElementById("nightInfo");
+  <!-- Firebase (compat sürüm, basit kullanım) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-    const now = new Date();
-    todayEl.textContent = now.toLocaleDateString("tr-TR", {
+  <script>
+    // TODO: BURAYA KENDİ FIREBASE CONFIG'İNİ YAPIŞTIR
+    // Firebase konsolundan aldığın config ile değiştir.
+    const firebaseConfig = {
+      apiKey: "BURAYA_API_KEY",
+      authDomain: "BURAYA_AUTH_DOMAIN",
+      projectId: "BURAYA_PROJECT_ID",
+      storageBucket: "BURAYA_STORAGE_BUCKET",
+      messagingSenderId: "BURAYA_MSG_SENDER_ID",
+      appId: "BURAYA_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Hangi e-postalar admin olacak? (sen ve istersen birkaç kişi)
+    const ADMIN_EMAILS = [
+      "seninmailin@example.com"
+    ];
+
+    const authView = document.getElementById("authView");
+    const appView = document.getElementById("appView");
+    const authEmail = document.getElementById("authEmail");
+    const authPassword = document.getElementById("authPassword");
+    const authMessage = document.getElementById("authMessage");
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userEmailEl = document.getElementById("userEmail");
+    const headerDate = document.getElementById("headerDate");
+
+    const cityInput = document.getElementById("cityInput");
+    const countryInput = document.getElementById("countryInput");
+    const loadTimesBtn = document.getElementById("loadTimesBtn");
+    const locationLabel = document.getElementById("locationLabel");
+    const currentPrayerLabel = document.getElementById("currentPrayerLabel");
+    const countdownEl = document.getElementById("countdown");
+    const timesList = document.getElementById("timesList");
+    const nightInfo = document.getElementById("nightInfo");
+    const prayerChecklist = document.getElementById("prayerChecklist");
+    const checklistMessage = document.getElementById("checklistMessage");
+    const adminCard = document.getElementById("adminCard");
+    const adminTableContainer = document.getElementById("adminTableContainer");
+
+    let currentUser = null;
+    let currentTimings = null;
+    let countdownTimer = null;
+
+    headerDate.textContent = new Date().toLocaleDateString("tr-TR", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric"
     });
 
-    async function loadTimes() {
-      errorEl.textContent = "";
-      timesGrid.innerHTML = "";
-      nightInfo.textContent = "";
-      loadBtn.disabled = true;
-      loadBtn.textContent = "Yükleniyor...";
+    function showAuthError(msg) {
+      authMessage.style.display = "block";
+      authMessage.textContent = msg;
+    }
+    function clearAuthError() {
+      authMessage.style.display = "none";
+      authMessage.textContent = "";
+    }
 
-      const city = document.getElementById("city").value.trim() || "Duisburg";
-      const country = document.getElementById("country").value.trim() || "Germany";
-
+    loginBtn.onclick = async () => {
+      clearAuthError();
       try {
+        await auth.signInWithEmailAndPassword(authEmail.value.trim(), authPassword.value);
+      } catch (e) {
+        showAuthError("Giriş başarısız: " + e.message);
+      }
+    };
+
+    registerBtn.onclick = async () => {
+      clearAuthError();
+      try {
+        await auth.createUserWithEmailAndPassword(authEmail.value.trim(), authPassword.value);
+        showAuthError("Kayıt başarılı, şimdi giriş yapabilirsiniz.");
+      } catch (e) {
+        showAuthError("Kayıt başarısız: " + e.message);
+      }
+    };
+
+    logoutBtn.onclick = () => auth.signOut();
+
+    auth.onAuthStateChanged(async (user) => {
+      currentUser = user;
+      if (user) {
+        authView.style.display = "none";
+        appView.style.display = "block";
+        userEmailEl.textContent = user.email || "";
+        // Admin mi?
+        const isAdmin = ADMIN_EMAILS.includes((user.email || "").toLowerCase());
+        adminCard.style.display = isAdmin ? "block" : "none";
+
+        await loadTimes();
+        await renderChecklist();
+        if (isAdmin) {
+          await loadAdminTable("today");
+        }
+      } else {
+        authView.style.display = "block";
+        appView.style.display = "none";
+      }
+    });
+
+    async function loadTimes() {
+      try {
+        const city = cityInput.value.trim() || "Duisburg";
+        const country = countryInput.value.trim() || "Germany";
+        locationLabel.textContent = city + ", " + country;
+
         const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=13`;
         const res = await fetch(url);
         const data = await res.json();
-
         if (data.code !== 200) throw new Error("API hatası");
 
         const t = data.data.timings;
-        const items = [
-          ["İmsak", t.Imsak],
-          ["Sabah (Fecr)", t.Fajr],
-          ["Güneş", t.Sunrise],
-          ["Öğle", t.Dhuhr],
-          ["İkindi", t.Asr],
-          ["Akşam", t.Maghrib],
-          ["Yatsı", t.Isha]
-        ];
+        currentTimings = t;
+        renderTimes(t);
+        setupCountdown(t);
+      } catch (e) {
+        locationLabel.textContent = "Vakitler alınamadı, şehir/ülke ve interneti kontrol edin.";
+      }
+    }
 
-        const mag = t.Maghrib.split(":").map(Number);
-        const faj = t.Fajr.split(":").map(Number);
+    function renderTimes(t) {
+      timesList.innerHTML = "";
+      nightInfo.textContent = "";
+      const order = [
+        ["İmsak", "Imsak"],
+        ["Sabah (Fecr)", "Fajr"],
+        ["Güneş", "Sunrise"],
+        ["Öğle", "Dhuhr"],
+        ["İkindi", "Asr"],
+        ["Akşam", "Maghrib"],
+        ["Yatsı", "Isha"]
+      ];
 
-        let magTotal = mag[0] * 60 + mag[1];
-        let fajTotal = faj[0] * 60 + faj[1];
-        if (fajTotal <= magTotal) fajTotal += 1440;
+      const now = new Date();
+      let activeKey = null;
+      let nextKey = null;
+      let minDiff = Infinity;
+      const toMinutes = (h, m) => h * 60 + m;
 
-        const nightLength = fajTotal - magTotal;
-        const tahajjudStart = fajTotal - Math.floor(nightLength / 3);
+      // aktif vakti bul
+      const dayMinutes = toMinutes(now.getHours(), now.getMinutes());
+      for (let i = 0; i < order.length; i++) {
+        const key = order[i][1];
+        const [hh, mm] = t[key].split(":").map(Number);
+        const m = toMinutes(hh, mm);
+        if (dayMinutes >= m) activeKey = key;
+        const diff = m - dayMinutes;
+        if (diff > 0 && diff < minDiff) {
+          minDiff = diff;
+          nextKey = key;
+        }
+      }
+      if (!nextKey) nextKey = order[0][1];
 
-        function format(min) {
-          const t = ((min % 1440) + 1440) % 1440;
-          const h = String(Math.floor(t / 60)).padStart(2, "0");
-          const m = String(t % 60).padStart(2, "0");
-          return `${h}:${m}`;
+      order.forEach(([label, key]) => {
+        const div = document.createElement("div");
+        div.className = "time-item";
+        if (key === activeKey) div.classList.add("time-active");
+        div.innerHTML = `
+          <div class="time-label">${label}</div>
+          <div class="time-value">${t[key]}</div>
+        `;
+        timesList.appendChild(div);
+      });
+
+      const nameMap = {
+        Imsak: "İmsak",
+        Fajr: "Sabah",
+        Sunrise: "Güneş",
+        Dhuhr: "Öğle",
+        Asr: "İkindi",
+        Maghrib: "Akşam",
+        Isha: "Yatsı"
+      };
+      currentPrayerLabel.textContent = nextKey
+        ? nameMap[nextKey] + " vaktine kalan süre:"
+        : "";
+
+      // Teheccüd bilgisi
+      const parse = (s) => s.split(":").map(Number);
+      const [mh, mm] = parse(t.Maghrib);
+      const [fh, fm] = parse(t.Fajr);
+      let mag = mh * 60 + mm;
+      let faj = fh * 60 + fm;
+      if (faj <= mag) faj += 1440;
+      const nightLen = faj - mag;
+      const lastThirdStart = faj - Math.floor(nightLen / 3);
+      const fmt = (tot) => {
+        const m = ((tot % 1440) + 1440) % 1440;
+        const h = String(Math.floor(m / 60)).padStart(2, "0");
+        const mm2 = String(m % 60).padStart(2, "0");
+        return `${h}:${mm2}`;
+      };
+      nightInfo.textContent = `Gece Akşam (${t.Maghrib}) → Fecr (${t.Fajr}). Teheccüd için son üçte bir: yaklaşık ${fmt(lastThirdStart)} – ${fmt(faj)}.`;
+    }
+
+    function setupCountdown(t) {
+      if (countdownTimer) clearInterval(countdownTimer);
+
+      const order = ["Imsak","Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"];
+      const now = new Date();
+      const base = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+      function nextTargetDate() {
+        const d = new Date();
+        const today = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0);
+        const nowMs = d.getTime() - today.getTime();
+        let best = null;
+        for (const key of order) {
+          const [hh, mm] = t[key].split(":").map(Number);
+          const target = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hh, mm, 0);
+          if (target.getTime() > d.getTime()) {
+            best = target;
+            break;
+          }
+        }
+        if (!best) {
+          const [hh, mm] = t[order[0]].split(":").map(Number);
+          best = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, hh, mm, 0);
+        }
+        return best;
+      }
+
+      let target = nextTargetDate();
+
+      countdownTimer = setInterval(() => {
+        const now = new Date();
+        const diff = target.getTime() - now.getTime();
+        if (diff <= 0) {
+          target = nextTargetDate();
+          return;
+        }
+        const totalSec = Math.floor(diff / 1000);
+        const h = String(Math.floor(totalSec / 3600)).padStart(2, "0");
+        const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, "0");
+        const s = String(totalSec % 60).padStart(2, "0");
+        countdownEl.textContent = `${h}:${m}:${s}`;
+      }, 1000);
+    }
+
+    loadTimesBtn.onclick = () => loadTimes();
+
+    // Bugünkü tarih (Y-m-d)
+    function todayKey() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${day}`;
+    }
+
+    async function renderChecklist() {
+      if (!currentUser) return;
+      const userId = currentUser.uid;
+      const dateKey = todayKey();
+
+      const prayers = [
+        ["Imsak", "İmsak"],
+        ["Fajr", "Sabah"],
+        ["Sunrise", "Güneş"],
+        ["Dhuhr", "Öğle"],
+        ["Asr", "İkindi"],
+        ["Maghrib", "Akşam"],
+        ["Isha", "Yatsı"]
+      ];
+
+      const snap = await db.collection("prayerLogs")
+        .where("userId", "==", userId)
+        .where("dateKey", "==", dateKey)
+        .get();
+
+      const doneSet = new Set();
+      snap.forEach(doc => {
+        doneSet.add(doc.data().prayerKey);
+      });
+
+      prayerChecklist.innerHTML = "";
+      prayers.forEach(([key, label]) => {
+        const row = document.createElement("div");
+        row.className = "prayer-row";
+        const left = document.createElement("div");
+        left.textContent = label;
+        const right = document.createElement("div");
+
+        if (doneSet.has(key)) {
+          right.innerHTML = '<span class="badge-done">✓ Kılındı</span>';
+        } else {
+          const btn = document.createElement("button");
+          btn.className = "primary small";
+          btn.textContent = "Kıldım";
+          btn.onclick = async () => {
+            await db.collection("prayerLogs").add({
+              userId,
+              email: currentUser.email || "",
+              dateKey,
+              prayerKey: key,
+              prayerLabel: label,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            checklistMessage.style.display = "block";
+            checklistMessage.textContent = label + " namazı kaydedildi.";
+            setTimeout(() => checklistMessage.style.display = "none", 2500);
+            renderChecklist();
+          };
+          right.appendChild(btn);
         }
 
-        items.forEach(([label, val]) => {
-          const div = document.createElement("div");
-          div.className = "time-item";
-          div.innerHTML = `<div class="time-label">${label}</div>
-                           <div class="time-value">${val}</div>`;
-          timesGrid.appendChild(div);
-        });
+        row.appendChild(left);
+        row.appendChild(right);
+        prayerChecklist.appendChild(row);
+      });
+    }
 
-        const teheccudDiv = document.createElement("div");
-        teheccudDiv.className = "time-item";
-        teheccudDiv.innerHTML =
-          `<div class="time-label">Teheccüd <span class="badge">son üçte bir</span><
+    // ADMIN PANEL
+    async function loadAdminTable(mode) {
+      if (!currentUser) return;
+      const isAdmin = ADMIN_EMAILS.includes((currentUser.email || "").toLowerCase());
+      if (!isAdmin) return;
+
+      adminTableContainer.textContent = "Yükleniyor…";
+
+      const now = new Date();
+      const today = todayKey();
+      let fromDateKey = today;
+
+      if (mode === "week") {
+        const d = new Date();
+        d.setDate(d.getDate() - 6);
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,"0");
+        const day = String(d.getDate()).padStart(2,"0");
+        fromDateKey = `${y}-${m}-${day}`;
+      }
+
+      let query = db.collection("prayerLogs")
+        .where("dateKey", ">=", fromDateKey);
+      const snap = await query.get();
+
+      if (snap.empty) {
+        adminTableContainer.textContent = "Kayıt bulunamadı.";
+        return;
+      }
+
+      const stats = {}; // stats[email][dateKey][prayerKey] = true
+      snap.forEach(doc => {
+        const d = doc.data();
+        const email = d.email || d.userId;
+        if (!stats[email]) stats[email] = {};
+        if (!stats[email][d.dateKey]) stats[email][d.dateKey] = {};
+        stats[email][d.dateKey][d.prayerKey] = true;
+      });
+
+      const prayers = ["Imsak","Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"];
+      const labelMap = {
+        Imsak:"İmsak", Fajr:"Sabah", Sunrise:"Güneş",
+        Dhuhr:"Öğle", Asr:"İkindi", Maghrib:"Akşam", Isha:"Yatsı"
+      };
+
+      let html = "<table><thead><tr><th>Kullanıcı</th>";
+      if (mode === "today") {
+        prayers.forEach(p => html += `<th>${labelMap[p]}</th>`);
+      } else {
+        html += "<th>Tarih</th><th>Kılınan toplam</th>";
+      }
+      html += "</tr></thead><tbody>";
+
+      Object.entries(stats).forEach(([email, dates]) => {
+        if (mode === "today") {
+          const d = dates[today] || {};
+          html += `<tr><td>${email}</td>`;
+          prayers.forEach(p => {
+            html += `<td>${d[p] ? "✓" : ""}</td>`;
+          });
+          html += "</tr>";
+        } else {
+          Object.entries(dates).forEach(([dateKey, prayersMap]) => {
+            const count = Object.keys(prayersMap).length;
+            html += `<tr><td>${email}</td><td>${dateKey}</td><td>${count}</td></tr>`;
+          });
+        }
+      });
+
+      html += "</tbody></table>";
+      adminTableContainer.innerHTML = html;
+    }
+
+    // Admin tab click
+    document.addEventListener("click", (e) => {
+      if (e.target.classList.contains("tab")) {
+        const mode = e.target.dataset.tab;
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        e.target.classList.add("active");
+        loadAdminTable(mode === "week" ? "week" : "today");
+      }
+    });
+
+    // Service worker (PWA)
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>
